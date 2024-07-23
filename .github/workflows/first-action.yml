@@ -18,6 +18,7 @@ jobs:
          sparse-checkout: .
       - name: checking python version
         run: |
+          pip install pandas
           python --version
           pwd
           python3 test-python.py
