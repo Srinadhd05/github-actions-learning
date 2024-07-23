@@ -10,3 +10,8 @@ jobs:
           echo "Second output"
       - name: Print goodbye
         run: echo "Done - bye!"
+  python-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checking python version
+        run: python --version
