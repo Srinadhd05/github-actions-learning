@@ -19,7 +19,8 @@ file1.writelines(L)
 file1.close()
 
 # Using readlines()
-file1 = open('myfile.txt', 'r')
+#file1 = open('myfile.txt', 'r')
+file1 = open('README.md', 'r')
 Lines = file1.readlines()
 
 count = 0
