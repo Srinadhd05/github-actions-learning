@@ -1,17 +1,17 @@
 name: First Workflow
 on: workflow_dispatch
 jobs:
-  first-job:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print greeting
-        run: |
-          echo "First output"
-          echo "Second output"
-      - name: Print goodbye
-        run: echo "Done - bye!"
+ # first-job:
+ #   runs-on: ubuntu-latest
+ #   steps:
+ #     - name: Print greeting
+ #       run: |
+ #         echo "First output"
+ #         echo "Second output"
+ #     - name: Print goodbye
+ #       run: echo "Done - bye!"
   python-job:
-    needs: first-job
+    #needs: first-job
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
