@@ -23,4 +23,4 @@ jobs:
           python --version
           pwd
           python3 test-python.py
-          echo "{{toJson(github.event)}}"
+          echo "{{ toJson(github.event) }}"
