@@ -200,5 +200,11 @@ spec:
         image: us-docker.pkg.dev/google-samples/containers/gke/gb-frontend:v5
 ```
 
+## Deployments
+
+A Deployment manages a set of Pods to run an application workload, it helps in rollout updates and also performing rollback to earlier version of deployments.
+A Deployment provides declarative updates for Pods and ReplicaSets.You describe a desired state in a Deployment, and the Deployment Controller changes the actual state to the desired state at a controlled rate.
+
+
 
 
