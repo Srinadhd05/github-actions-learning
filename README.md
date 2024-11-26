@@ -72,8 +72,9 @@ Pods contain one or more containers and, within the pod, containers share the sa
 * We cannot have multiple containers of same kind running a single POD, example: running 2 tomcat pods serving same purpose cannot have in same pod.
 
 ### Imperative approch:
-kubctl run ngnix --image=ngnix:latest
+kubctl run ngnix --image=ngnix:latest  ---> Command will create a pod with one nginix container running
 
+```
 kubectl run --help   					---> helps to explore command options with examples
 kubctl run ngnix --image=ngnix:latest --port=80 	---> Creates a pod with name ngnix using ngnix latest tagged image with port 80 mapping 
 kubctl get pods   					---> Gets the list of running pods.
@@ -82,6 +83,83 @@ kubctl logs <<name of the pod>>  			---> Command to check pod logs.
 kubectl describe pod <<name of the pod>>  		---> Command to view complete details about pod, like name,node,volumes, events etc..
 kubectl delete pod <<name of the pod>>   		---> Command used to delete a pod
 kubectl logs <<name of the pod>> -c <<container name>>  ---> A pod can have more than one container, this command will help in getting logs of a specific container from a pod.
+```
+### Declarative approch
+
+Kubernetes objects can be created, updated, and deleted by storing multiple object configuration files in a configuration file and using kubectl apply to recursively create and update those objects as needed.
+
+### Comments & Key Value Pairs
+- Space after colon is mandatory to differentiate key and value
+```yml
+# Defining simple key value pairs
+name: Srinadh
+age: 29
+city: Hyderabad
+```
+
+## Dictionary / Map
+- Set of properties grouped together after an item
+- Equal amount of blank space required for all the items under a dictionary
+```yml
+person:
+  name: Srinadh
+  age: 29
+  city: Hyderabad
+```
+
+## Array / Lists
+- Dash indicates an element of an array
+```yml
+person: # Dictionary
+  name: Srinadh
+  age: 29
+  city: Hyderabad
+  hobbies: # List  
+    - cycling
+    - cooking
+  hobbies: [cycling, cooking]   # List with a differnt notation  
+```  
+
+## Step-04: Multiple Lists
+- Dash indicates an element of an array
+```yml
+person: # Dictionary
+  name: Srinadh
+  age: 23
+  city: Hyderabad
+  hobbies: # List  
+    - cycling
+    - cooking
+  hobbies: [cycling, cooking]   # List with a differnt notation  
+  friends: # 
+    - name: friend1
+      age: 22
+    - name: friend2
+      age: 25            
+```  
+
+
+## Step-05: Sample Pod Tempalte for Reference
+```yml
+apiVersion: v1 # String
+kind: Pod  # String
+metadata: # Dictionary
+  name: myfirst-app
+  labels: # Dictionary 
+    app: myfirst-app        
+spec:
+  containers: # List
+    - name: myapp
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+          protocol: "TCP"
+        - containerPort: 81
+          protocol: "TCP"
+```
+
+
+
 
 
 
