@@ -84,7 +84,7 @@ kubectl describe pod <<name of the pod>>  		---> Command to view complete detail
 kubectl delete pod <<name of the pod>>   		---> Command used to delete a pod
 kubectl logs <<name of the pod>> -c <<container name>>  ---> A pod can have more than one container, this command will help in getting logs of a specific container from a pod.
 ```
-### Declarative approch
+### Declarative approch with Yaml
 
 Kubernetes objects can be created, updated, and deleted by storing multiple object configuration files in a configuration file and using kubectl apply to recursively create and update those objects as needed.
 
