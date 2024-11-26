@@ -43,17 +43,45 @@ kube-proxy is a network proxy that runs on each node in your cluster, kube-proxy
 It is responsible for managing the execution and lifecycle of containers within the Kubernetes environment.
  
 
-## Draft
-Below are popular providers of Kubernetes cluster platform as a service.
-	• Amazon EKS
-	• Azure AKS
-	• Google GKE
-	• Openshift
+## Good to know
+Below are popular providers of Kubernetes cluster platform as a service:
+* Amazon EKS
+* Azure AKS
+* Google GKE
+* Openshift
 
-Pod: Pods contain one or more containers and, within the pod, containers share the same system resources such as storage and networking. Each pod gets a unique private IP address, which can be used communication between pods within cluster using VPC-CNI (container network interface).
+### CLI's:
+* AWS CLI: We can authenticate and interact with AWS resources.
+* Kubectl: We can control kubernetes cluster and objects using kubectl.
+* eksctl: It can be used to manage EKS AWS resources, like cluster creation or deletion, managing node groups and fargate profiles.
 
-Kubectl: Kubernetes provides a command line tool for communicating with a Kubernetes cluster's control plane, using the Kubernetes API. This tool is named kubectl.
+We can interact and configure Kubernetes resources in two different ways: Imperative or Declarative
+* Imperative configuration means that to describe the configuration of the resource while executing a command from a terminal’s command prompt.
+  	Example: kubctl run ngnix --image=ngnix:latest
+* Declarative configuration means that you create a file that describes the configuration for the particular resource and then apply the content of the file to the Kubernetes cluster.
 
+## Kubernetes objects
+
+### Pod: 
+Pods contain one or more containers and, within the pod, containers share the same system resources such as storage and networking. Each pod gets a unique private IP address, which can be used communication between pods within cluster using VPC-CNI (container network interface).
+
+![image](https://github.com/user-attachments/assets/81982b2f-5876-4c7d-8314-777b4b40db4d)
+
+* Pod's are not accessible outside of cluster by default.
+* Containers within a pod are not isolated. Think of a pod as similar to a virtual machine (VM), with containers similar to applications running on the VM. Pods and groups of pods can be organized by attaching attribute labels to them, such as labeling ‘dev’ or ‘prod’ for the type of environment. 
+* We cannot have multiple containers of same kind running a single POD, example: running 2 tomcat pods serving same purpose cannot have in same pod.
+
+### Imperative approch:
+kubctl run ngnix --image=ngnix:latest
+
+kubectl run --help   					---> helps to explore command options with examples
+kubctl run ngnix --image=ngnix:latest --port=80 	---> Creates a pod with name ngnix using ngnix latest tagged image with port 80 mapping 
+kubctl get pods   					---> Gets the list of running pods.
+kubctl get pods -o wide  				---> Gives additional information about running pods
+kubctl logs <<name of the pod>>  			---> Command to check pod logs.
+kubectl describe pod <<name of the pod>>  		---> Command to view complete details about pod, like name,node,volumes, events etc..
+kubectl delete pod <<name of the pod>>   		---> Command used to delete a pod
+kubectl logs <<name of the pod>> -c <<container name>>  ---> A pod can have more than one container, this command will help in getting logs of a specific container from a pod.
 
 
 
