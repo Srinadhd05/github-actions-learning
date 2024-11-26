@@ -60,9 +60,9 @@ We can interact and configure Kubernetes resources in two different ways: Impera
   	Example: kubctl run ngnix --image=ngnix:latest
 * Declarative configuration means that you create a file that describes the configuration for the particular resource and then apply the content of the file to the Kubernetes cluster.
 
-## Kubernetes objects
+# Kubernetes objects
 
-### Pod: 
+## Pod: 
 Pods contain one or more containers and, within the pod, containers share the same system resources such as storage and networking. Each pod gets a unique private IP address, which can be used communication between pods within cluster using VPC-CNI (container network interface).
 
 ![image](https://github.com/user-attachments/assets/81982b2f-5876-4c7d-8314-777b4b40db4d)
@@ -76,7 +76,7 @@ Pods contain one or more containers and, within the pod, containers share the sa
 * [Killercoda](https://killercoda.com/playgrounds/scenario/kubernetes)
 * [Play with Kubernetes](https://labs.play-with-k8s.com/)
 
-### Imperative approch:
+## Imperative approch:
 kubctl run ngnix --image=ngnix:latest  ---> Command will create a pod with one nginix container running
 
 ```
@@ -92,7 +92,7 @@ kubectl exec -it <pod-name> -- /bin/bash   ---> Connect to Nginx Container in a 
 kubectl exec -it <pod-name> ls   ---> Running individual commands in a Container
 kubectl get <<kubernetes object>> <<Name of the object>> -o yaml   ---> Get pod definition YAML output   
 ```
-### Declarative approch with Yaml
+## Declarative approch with Yaml
 
 Kubernetes objects can be created, updated, and deleted by storing multiple object configuration files in a configuration file and using kubectl apply to recursively create and update those objects as needed.
 
@@ -165,10 +165,38 @@ spec:
         - containerPort: 81
           protocol: "TCP"
 ```
+## ReplicaSet
 
+A ReplicaSet's is used to maintain a stable set of replica Pods running at any given time. It is often used to guarantee the availability of a specified number of identical Pods.
+It uses below cofiguration for creating and deleting Pods as needed to reach the desired number.
 
+* selector: specifies how to identify Pods it can acquire
+* replicas: indicating how many Pods it should be maintaining
+* template: pod template specifying the data of new Pods it should create to meet the number of replicas criteria
 
-
+```yml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  # modify replicas according to your case
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis
+        image: us-docker.pkg.dev/google-samples/containers/gke/gb-frontend:v5
+```
 
 
 
