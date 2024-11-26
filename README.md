@@ -71,6 +71,11 @@ Pods contain one or more containers and, within the pod, containers share the sa
 * Containers within a pod are not isolated. Think of a pod as similar to a virtual machine (VM), with containers similar to applications running on the VM. Pods and groups of pods can be organized by attaching attribute labels to them, such as labeling ‘dev’ or ‘prod’ for the type of environment. 
 * We cannot have multiple containers of same kind running a single POD, example: running 2 tomcat pods serving same purpose cannot have in same pod.
 
+### Playgrounds for kubernetes
+
+* [Killercoda](https://killercoda.com/playgrounds/scenario/kubernetes)
+* [Play with Kubernetes](https://labs.play-with-k8s.com/)
+
 ### Imperative approch:
 kubctl run ngnix --image=ngnix:latest  ---> Command will create a pod with one nginix container running
 
@@ -83,6 +88,9 @@ kubctl logs <<name of the pod>>  			---> Command to check pod logs.
 kubectl describe pod <<name of the pod>>  		---> Command to view complete details about pod, like name,node,volumes, events etc..
 kubectl delete pod <<name of the pod>>   		---> Command used to delete a pod
 kubectl logs <<name of the pod>> -c <<container name>>  ---> A pod can have more than one container, this command will help in getting logs of a specific container from a pod.
+kubectl exec -it <pod-name> -- /bin/bash   ---> Connect to Nginx Container in a POD
+kubectl exec -it <pod-name> ls   ---> Running individual commands in a Container
+kubectl get <<kubernetes object>> <<Name of the object>> -o yaml   ---> Get pod definition YAML output   
 ```
 ### Declarative approch with Yaml
 
@@ -120,7 +128,7 @@ person: # Dictionary
   hobbies: [cycling, cooking]   # List with a differnt notation  
 ```  
 
-## Step-04: Multiple Lists
+## Multiple Lists
 - Dash indicates an element of an array
 ```yml
 person: # Dictionary
@@ -139,7 +147,7 @@ person: # Dictionary
 ```  
 
 
-## Step-05: Sample Pod Tempalte for Reference
+## Sample Pod Tempalte for Reference
 ```yml
 apiVersion: v1 # String
 kind: Pod  # String
