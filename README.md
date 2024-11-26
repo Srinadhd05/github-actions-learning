@@ -79,7 +79,7 @@ Pods contain one or more containers and, within the pod, containers share the sa
 ## Imperative approch:
 kubctl run ngnix --image=ngnix:latest  ---> Command will create a pod with one nginix container running
 
-```
+```bash
 kubectl run --help   					---> helps to explore command options with examples
 kubctl run ngnix --image=ngnix:latest --port=80 	---> Creates a pod with name ngnix using ngnix latest tagged image with port 80 mapping 
 kubctl get pods   					---> Gets the list of running pods.
@@ -95,6 +95,8 @@ kubectl get <<kubernetes object>> <<Name of the object>> -o yaml   ---> Get pod 
 ## Declarative approch with Yaml
 
 Kubernetes objects can be created, updated, and deleted by storing multiple object configuration files in a configuration file and using kubectl apply to recursively create and update those objects as needed.
+
+Use `kubectl apply -f <<.yaml>>` to create all objects defined by configuration files in a specified directory
 
 ### Comments & Key Value Pairs
 - Space after colon is mandatory to differentiate key and value
