@@ -55,11 +55,6 @@ Below are popular providers of Kubernetes cluster platform as a service:
 * Kubectl: We can control kubernetes cluster and objects using kubectl.
 * eksctl: It can be used to manage EKS AWS resources, like cluster creation or deletion, managing node groups and fargate profiles.
 
-We can interact and configure Kubernetes resources in two different ways: Imperative or Declarative
-* Imperative configuration means that to describe the configuration of the resource while executing a command from a terminal’s command prompt.
-  	Example: kubctl run ngnix --image=ngnix:latest
-* Declarative configuration means that you create a file that describes the configuration for the particular resource and then apply the content of the file to the Kubernetes cluster.
-
 # Kubernetes objects
 
 ## Pod: 
@@ -75,6 +70,13 @@ Pods contain one or more containers and, within the pod, containers share the sa
 
 * [Killercoda](https://killercoda.com/playgrounds/scenario/kubernetes)
 * [Play with Kubernetes](https://labs.play-with-k8s.com/)
+
+## Imperative & Declarative
+
+We can interact and configure Kubernetes resources in two different ways: Imperative or Declarative
+* Imperative configuration means that to describe the configuration of the resource while executing a command from a terminal’s command prompt.
+  	Example: kubctl run ngnix --image=ngnix:latest
+* Declarative configuration means that you create a file that describes the configuration for the particular resource and then apply the content of the file to the Kubernetes cluster.
 
 ## Imperative approch:
 kubctl run ngnix --image=ngnix:latest  ---> Command will create a pod with one nginix container running
