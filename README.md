@@ -96,7 +96,7 @@ kubectl get <<kubernetes object>> <<Name of the object>> -o yaml   ---> Get pod 
 ```
 ## Declarative approch with Yaml
 
-Kubernetes objects can be created, updated, and deleted by storing multiple object configuration files in a configuration file and using kubectl apply to recursively create and update those objects as needed.
+Kubernetes objects can be created, updated, and deleted by storing multiple object configurations in a file and using kubectl apply to recursively create and update those objects as needed.
 
 Use `kubectl apply -f <<.yaml>>` to create all objects defined by configuration files in a specified directory
 
