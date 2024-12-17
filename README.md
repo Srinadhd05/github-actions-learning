@@ -257,4 +257,150 @@ With above configuration kubernetes can start performing rolling updates, but it
 
 Kubernetes `Readiness Probes` helps in solving the problem. The probes check the state of pods and allow for rolling updates to proceed only when all of the containers in a pod are ready. Pods are considered ready when the readiness probe is successful and after the time specified in `minReadySeconds` has passed.
 
-Create `Readiness Probes` under `spec.template.spec` category in the deployment file
+Create `Readiness Probes` under `spec.template.spec` category in the deployment file.
+```yaml
+readinessProbe:
+  httpGet:
+    path: /
+    port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+```
+* `initialDelaySeconds` specifies how long the probe has to wait to start after the container starts.
+* `periodSeconds` is the time between two probes. The default is 10 seconds, while the minimal value is 1 second.
+* `successThreshold` is the minimum number of consecutive successful probes after a failed one for the entire process to be considered successful. The default and minimal values are both 1.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nginx
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.0
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+```
+
+```bash
+kubectl apply -f nginx-text.yaml --record
+```
+### Perform Rolling Update
+
+There are three ways to peform rolling updates.
+*  Using command `kubectl set` to perform the action.
+   ```bash
+   kubectl set image deployment nginx-deployment nginx=nginx:1.14.2 --record
+   ```
+* Modifying the image version in `spec.templates.spec.containers` section of the yaml file. Then, use kubectl replace to perform the update.
+  ```bash
+  kubectl replace -f nginx-test.yaml
+  ```
+* Using `kubectl edit` to edit the deployment directly.
+  ```bash
+  kubectl edit deployment nginx-deployment --record
+  ```
+### Check Rollout Status
+```bash
+kubectl rollout status deployment nginx-deployment
+```
+### Pause and Resume Rolling Update
+```bash
+kubectl rollout pause deployment nginx-deployment  # Command to pasue rollout
+kubectl rollout resume deployment nginx-deployment # Command tp resume rollout
+```
+### Rollback Changes
+We can rollback changes and revert to a previous version of the app.
+```bash
+kubectl rollout history deployment nginx-deployment
+```
+The output lists the available revisions, created by adding the --record flag when performing an update
+
+Choose the revision you want and type the following command to rollback the changes.
+```bash
+kubectl rollout undo deployment nginx-deployment --to-revision=1 # The command above rolls back to revision 1, specify revision based on deployment history output.
+```
+### Schedule Pods for Deployment
+Use affinity and anti-affinity properties to control on which nodes Kubernetes schedules specific pods in your deployment.
+
+#### Pod Affinity
+There are two types of affinity currently available in Kubernetes:
+
+* `requiredDuringSchedulingIgnoredDuringExecution` The scheduler can't schedule the Pod unless the rule is met. This functions like nodeSelector, but with a more expressive syntax.
+* `preferredDuringSchedulingIgnoredDuringExecution` The scheduler tries to find a node that meets the rule. If a matching node is not available, the scheduler still schedules the Pod.
+
+These properties are listed in the PodSpec file.
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: affinity-test
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/test-name
+            operator: In
+            values:
+            - test1
+            - test2
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        preference:
+          matchExpressions:
+          - key: example-node-label-key
+            operator: In
+            values:
+            - example-node-label-value
+  containers:
+  - name: affinity-test
+    image: k8s.gcr.io/pause:2.0
+```
+The file above tells Kubernetes to run the pod only on a node with a label whose key is kubernetes.io/test-name and whose value is either test1 or test2. Furthermore, Kubernetes will prefer nodes whose key is example-node-label-key, with the example-node-label-value value.
+
+#### Pod Anti-Affinity
+Pod anti-affinity is useful if you do not want all the pods to run on the same node. It functions similarly to affinity, with the same two types available - requiredDuringSchedulingIgnoredDuringExecution and preferredDuringSchedulingIgnoredDuringExecution.
+
+The following example specifies an anti-affinity rule that tells Kubernetes to preferably avoid scheduling the "test" app pods to nodes that already have the "test" pods.
+
+```yaml
+podAntiAffinity:
+  preferredDuringSchedulingIgnoredDuringExecution:
+  - weight: 100
+    podAffinityTerm:
+      labelSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values:
+          - test
+      topologyKey: Kubernetes.io/hostname
+```
