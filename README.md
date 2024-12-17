@@ -350,8 +350,8 @@ kubectl rollout undo deployment nginx-deployment --to-revision=1 # The command a
 There are multiple ways to control on which nodes Kubernetes schedules specific pods in your deployment.
 * nodeselector
 * Affinity and anti Affinity
-* [nodename]([https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodename])
-* [pod-topology-spread-constraints]([https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#pod-topology-spread-constraints])
+* [nodename](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodename)
+* [pod-topology-spread-constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#pod-topology-spread-constraints)
  
 ### Pod Affinity
 There are two types of affinity currently available in Kubernetes:
@@ -427,7 +427,7 @@ spec:
 
 Node affinity is a property of Pods that attracts them to a set of nodes (either as a preference or a hard requirement). Taints are the opposite -- they allow a node to repel a set of pods.
 
-Reference for more details on [Taints and Tolerations]([https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/])
+Reference for more details on [Taints and Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)
 
 ```bash
 kubectl taint nodes node1 key1=value1:NoSchedule
