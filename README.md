@@ -346,10 +346,14 @@ Choose the revision you want and type the following command to rollback the chan
 ```bash
 kubectl rollout undo deployment nginx-deployment --to-revision=1 # The command above rolls back to revision 1, specify revision based on deployment history output.
 ```
-### Schedule Pods for Deployment
-Use affinity and anti-affinity properties to control on which nodes Kubernetes schedules specific pods in your deployment.
-
-#### Pod Affinity
+## Schedule Pods for Deployment
+There are multiple ways to control on which nodes Kubernetes schedules specific pods in your deployment.
+* nodeselector
+* Affinity and anti Affinity
+* [nodename]([https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodename])
+* [pod-topology-spread-constraints]([https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#pod-topology-spread-constraints])
+ 
+### Pod Affinity
 There are two types of affinity currently available in Kubernetes:
 
 * `requiredDuringSchedulingIgnoredDuringExecution` The scheduler can't schedule the Pod unless the rule is met. This functions like nodeSelector, but with a more expressive syntax.
@@ -386,7 +390,7 @@ spec:
 ```
 The file above tells Kubernetes to run the pod only on a node with a label whose key is kubernetes.io/test-name and whose value is either test1 or test2. Furthermore, Kubernetes will prefer nodes whose key is example-node-label-key, with the example-node-label-value value.
 
-#### Pod Anti-Affinity
+### Pod Anti-Affinity
 Pod anti-affinity is useful if you do not want all the pods to run on the same node. It functions similarly to affinity, with the same two types available - requiredDuringSchedulingIgnoredDuringExecution and preferredDuringSchedulingIgnoredDuringExecution.
 
 The following example specifies an anti-affinity rule that tells Kubernetes to preferably avoid scheduling the "test" app pods to nodes that already have the "test" pods.
@@ -404,3 +408,43 @@ podAntiAffinity:
           - test
       topologyKey: Kubernetes.io/hostname
 ```
+### nodeSelector
+nodeSelector is the simplest recommended form of node selection constraint. You can add the nodeSelector field to your Pod specification and specify the node labels you want the target node to have. Kubernetes only schedules the Pod onto nodes that have each of the labels you specify.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+  nodeName: kube-01
+```
+
+### Taints and Tolerations
+
+Node affinity is a property of Pods that attracts them to a set of nodes (either as a preference or a hard requirement). Taints are the opposite -- they allow a node to repel a set of pods.
+
+Reference for more details on [Taints and Tolerations]([https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/])
+
+```bash
+kubectl taint nodes node1 key1=value1:NoSchedule
+```
+This means that no pod will be able to schedule onto node1 unless it has a matching toleration.
+
+We can specify a toleration for a pod in the PodSpec, and thus a pod with either toleration would be able to schedule onto node1
+```yaml
+tolerations:
+- key: "key1"
+  operator: "Equal"
+  value: "value1"
+  effect: "NoSchedule"
+
+tolerations:
+- key: "key1"
+  operator: "Exists"
+  effect: "NoSchedule"
+```
+
