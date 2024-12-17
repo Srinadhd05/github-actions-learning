@@ -263,9 +263,9 @@ readinessProbe:
   httpGet:
     path: /
     port: 8080
-    initialDelaySeconds: 5
-    periodSeconds: 5
-    successThreshold: 1
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
 ```
 * `initialDelaySeconds` specifies how long the probe has to wait to start after the container starts.
 * `periodSeconds` is the time between two probes. The default is 10 seconds, while the minimal value is 1 second.
@@ -303,13 +303,13 @@ spec:
           httpGet:
             path: /
             port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            successThreshold: 1
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
 ```
 
 ```bash
-kubectl apply -f nginx-text.yaml --record
+kubectl apply -f nginx-test.yaml --record
 ```
 ### Perform Rolling Update
 
