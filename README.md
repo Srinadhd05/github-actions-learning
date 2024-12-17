@@ -207,6 +207,54 @@ spec:
 A Deployment manages a set of Pods to run an application workload, it helps in rollout updates and also performing rollback to earlier version of deployments.
 A Deployment provides declarative updates for Pods and ReplicaSets.You describe a desired state in a Deployment, and the Deployment Controller changes the actual state to the desired state at a controlled rate.
 
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+```
 
+```bash
+kubectl create -f nginx-test.yaml #creates deployment with yaml file.
+kubectl get deployment  #Check the deployment.
+kubectl get rs  #Cheeck the replicasets.
+kubectl get pod  #Check the pods up and running.
+```
+### Ensure Zero Downtime
+We can specify the update strategy. Create under the spec category.
 
+```yaml
+minReadySeconds: 5
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 1
+```
+* `minReadySeconds` tells Kubernetes how long it should wait until it creates the next pod. This property ensures that all application pods are in the ready state during the update.
+* `maxSurge` specifies the maximum number (or percentage) of pods can be creayed above the specified number of replicas.
+   Example: In the above code, the maximum number of pods that can be created will be 5 since 4 replicas are specified in the yaml file.
+* `maxUnavailable` declares the maximum number (or percentage) of pods that can go unavailable during the update. If maxSurge is set to 0, this field cannot be 0.
 
+With above configuration kubernetes can start performing rolling updates, but it does not guarantee zero downtime. Because, kubernetes cannot tell when a new pod is ready, usually it eliminates the old pod as soon as the new one is created. It will not be able to validate if pod is ready to accept the requests.
+
+Kubernetes `Readiness Probes` helps in solving the problem. The probes check the state of pods and allow for rolling updates to proceed only when all of the containers in a pod are ready. Pods are considered ready when the readiness probe is successful and after the time specified in `minReadySeconds` has passed.
+
+Create `Readiness Probes` under `spec.template.spec` category in the deployment file
