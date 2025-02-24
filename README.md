@@ -470,7 +470,7 @@ An ephemeral Kubernetes Volume solves both of the problems faced with ephemeral 
 
 ### Decoupling pods from the storage: Persistent Volumes 
 
-Kubernetes also supports Persistent Volumes. With Persistent Volumes, data is persisted regardless of the lifecycle of the application, container, Pod, Node, or even the cluster itself. Persistent Volumes fulfill the three requirements outlined earlier. 
+Kubernetes also supports Persistent Volumes. With Persistent Volumes, data is persisted regardless of lifecycle of the application, container, Pod, Node, or even the cluster itself. Persistent Volumes fulfill the three requirements outlined earlier. 
 
 A Persistent Volume (PV) object represents a storage volume that is used to store persist application data. A PV has its own lifecycle, separate from the lifecycle of Kubernetes Pods. 
 
