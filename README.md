@@ -466,7 +466,7 @@ Containers can use the temporary filesystem (tmpfs) to read and write files. How
 
 An ephemeral Kubernetes Volume solves both of the problems faced with ephemeral storage. An ephemeralVolume‘s lifetime is coupled to the Pod. It enables safe container restarts and sharing of data between containers within a Pod. However as soon as the Pod is deleted, the Volume is deleted as well, so it still does not fulfill our three requirements.
 
-![GetImage](https://github.com/user-attachments/assets/08734f6c-3da4-4051-8534-f2986d445415)
+![2 -Pods-and-Volumes](https://github.com/user-attachments/assets/789ee58a-a9aa-43a3-89e6-37e7cc5d8233)
 
 ### Decoupling pods from the storage: Persistent Volumes 
 
@@ -478,6 +478,96 @@ A PV essentially consists of two different things:
 
 * A backend technology called a PersistentVolume 
 * An access mode, which tells Kubernetes how the volume should be mounted.
+
+### Backend technology
+A PV is an abstract component, and the actual physical storage must come from somewhere. Here are a few examples: 
+
+* csi: Container Storage Interface (CSI) → (for example, Amazon EFS, Amazon EBS, Amazon FSx, google discs , azure files) 
+* iscsi: iSCSI (SCSI over IP) storage
+* local: Local storage devices mounted on nodes
+* nfs: Network File System (NFS) storage
+
+Kubernetes is versatile and supports many different types of PVs. Kubernetes does not care about the underlying storage internals; it just gives us the PV component as an interface to the actual storage. 
+
+There are three major benefits to a PV:
+
+* A PV is not bound to the lifecycle of a Pod: when removing a Pod that is attached to a PV object, the PV will survive. 
+* The preceding statement is also valid when a Pod crashes: the PV object will survive the fault and not be removed from the cluster.
+* A PV is cluster-wide: it can be attached to any Pod running on any Node in the cluster.
+* All different backend storage technologies have their own performance characteristics and tradeoffs. For this reason, we see different types of PVs in production Kubernetes environments that depend on the application.
+
+### Access mode 
+
+The access mode is set during PV creation and tells Kubernetes how the volume should be mounted. Persistent Volumes support three access modes: 
+
+* ReadWriteOnce: Volume allows read/write by only one node at the same time. 
+* ReadOnlyMany: Volume allows read-only mode by many nodes at the same time.
+* ReadWriteMany: Volume allows read/write by multiple nodes at the same time.
+
+Not all PersistentVolume types support all access modes. 
+
+### Persistent volume claims:
+
+A Persistent Volume (PV) represents an actual storage volume. Kubernetes has an additional layer of abstraction necessary for attaching a PV to a Pod: the PersistentVolumeClaim (PVC). 
+
+Essentially, a Pod cannot mount a PV object directly. It needs to explicitly ask for it. And that asking action is achieved by creating a PVC object and attaching it to the Pod. This is the only reason why this additional layer of abstraction exists. PVCs and PVs have a one-to-one mapping (a PV can only be associated with a single PVC). 
+
+![3 Persistent-Volume-and-Persistent-Volume-Claim](https://github.com/user-attachments/assets/212128d1-ef15-4bf3-93b1-82eb9b94ee46)
+
+### Container Storage Interface (CSI) drivers 
+
+The Container Storage Interface (CSI) is an abstraction designed to facilitate using different storage solutions with Kubernetes. Different storage vendors can develop their own drivers that implement the CSI standards, enabling their storage solutions to work with Kubernetes (regardless of the internals of the underlying storage solution). AWS has CSI plugins for Amazon EBS, Amazon EFS , and Amazon FSx for Lustre.
+
+### Static provisioning 
+
+In what we described in the “Persistent volume claims” section, first the administrator creates one or more `PV`, and then the application developer creates a `PVC`. This is called static provisioning. It is static because you have to manually create the `PV` and the `PVC` in Kubernetes. At scale this can become more and more difficult to manage, especially if you are managing hundreds of `PVs` and `PVCs`.
+
+### Dynamic provisioning 
+
+With dynamic provisioning, you do not have to create a `PV` object. Instead, it will be automatically created under the hood when you create the `PVC`. Kubernetes does so using another object called `Storage Class`. 
+
+A `Storage Class` is an abstraction that defines a class of backend persistent storage (for example, Amazon EFS file storage, Amazon EBS block storage, etc.) used for container applications. 
+
+A `Storage Class` essentially contains two things: 
+
+* Name: This is the name, which uniquely identifies the storage class object.
+* Provisioner: This defines the underlying storage technology. For example, provisioner would be `efs.csi.aws.com` for Amazon EFS or `ebs.csi.aws.com` for Amazon EBS. 
+
+The `Storage Class` objects are the reason why Kubernetes is capable of dealing with so many different storage technologies. From a `Pod` perspective, no matter whether it is an EFS volume, EBS volume, NFS drive, or anything else, the Pod will only see a `PVC` object. All the underlying logic dealing with the actual storage technology is implemented by the provisioner the `Storage Class` object uses.
+
+![4 Dynamic-Provisioning](https://github.com/user-attachments/assets/e54a1183-0573-4419-b4d2-303666b88221)
+
+### Static Provisioning Demo: 
+
+* Need to create EFS file system. 
+* We create the PV manifest file and provide the FileSystemId of the newly created file system. (The PV status is Available, but it is not yet bound with any PVC. ) 
+* We create the persistent volume claim.
+
+The PV status has now changed from Available to Bound, which means that Kubernetes has been able to find a volume match using the PVC, and the volume has been bound. 
+
+Now if we tried to create another PVC, it would fail because we don’t have any more PVs left (a PV can be bound to a single PVC) – that is where dynamic provisioning would come in handy.
+
+![6 Static-Provisioning](https://github.com/user-attachments/assets/9c087f3c-05aa-40c4-b579-5b6a82132621)
+
+### Dynamic provisioning using Amazon EFS 
+
+Amazon EFS CSI driver supports both dynamic provisioning and static provisioning. For EFS, dynamic provisioning creates an access point for each `PV` under the hood. This means you have to create an Amazon EFS file system manually and provide it as an input to the `Storage Class` parameters. 
+
+By default each access point created via dynamic provisioning writes files under a different directory on EFS, and each access point writes files to EFS using a different POSIX uid/gid. This enables multiple applications to use the same EFS volume for persistent storage while providing isolation between applications. 
+
+* let’s create a new Amazon EFS volume (myEFS2) that we will be using for dynamic provisioning.
+* We need to create a Storage Class and provide the FileSystemId of the newly created file system.
+   * kubectl get sc  ---> verify the Storage Class
+* As mentioned in the “Dynamic provisioning” section, we don’t have to create any PV before deploying our application. So, you can go ahead and create a PVC and Pod. 
+
+If you repeat the process and create another application (`efs-app-2`), we don’t have to worry about the `PV` because it will create another access point under the hood.
+
+![9 Dynamic-Provisioning](https://github.com/user-attachments/assets/5584184d-1a1b-48a1-9b1c-c20fa2707130)
+
+
+
+
+
 
 
 
