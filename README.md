@@ -448,3 +448,36 @@ tolerations:
   effect: "NoSchedule"
 ```
 
+## Volumes
+On-disk files in a container are ephemeral, which presents some problems for non-trivial applications when running in containers.
+To prevent this data loss and run a stateful application on Kubernetes, we need to adhere to three simple storage requirements:
+
+* Storage must not depend on the pod lifecycle.
+* Storage must be available for all pods and nodes in the Kubernetes cluster.
+* Storage must be highly available regardless of crashes or application failures.
+
+Kubernetes has several types of storage options available, not all of which are persistent.
+
+### Ephemeral storage: 
+
+Containers can use the temporary filesystem (tmpfs) to read and write files. However, ephemeral storage does not satisfy the three storage requirements. In case of a container crash, the temporary filesystem is lost—the container starts with a clean slate again. Also, multiple containers cannot share a temporary filesystem.
+
+### Ephemeral volumes: 
+
+An ephemeral Kubernetes Volume solves both of the problems faced with ephemeral storage. An ephemeralVolume‘s lifetime is coupled to the Pod. It enables safe container restarts and sharing of data between containers within a Pod. However as soon as the Pod is deleted, the Volume is deleted as well, so it still does not fulfill our three requirements.
+
+![GetImage](https://github.com/user-attachments/assets/08734f6c-3da4-4051-8534-f2986d445415)
+
+### Decoupling pods from the storage: Persistent Volumes 
+
+Kubernetes also supports Persistent Volumes. With Persistent Volumes, data is persisted regardless of the lifecycle of the application, container, Pod, Node, or even the cluster itself. Persistent Volumes fulfill the three requirements outlined earlier. 
+
+A Persistent Volume (PV) object represents a storage volume that is used to store persist application data. A PV has its own lifecycle, separate from the lifecycle of Kubernetes Pods. 
+
+A PV essentially consists of two different things: 
+
+* A backend technology called a PersistentVolume 
+* An access mode, which tells Kubernetes how the volume should be mounted.
+
+
+
