@@ -565,6 +565,51 @@ If you repeat the process and create another application (`efs-app-2`), we donâ€
 ![9 Dynamic-Provisioning](https://github.com/user-attachments/assets/5584184d-1a1b-48a1-9b1c-c20fa2707130)
 
 
+* If a user deletes a PVC in active use by a Pod, the PVC is not removed immediately. PVC removal is postponed until the PVC is no longer actively used by any Pods.
+* If an admin deletes a PV that is bound to a PVC, the PV is not removed immediately. PV removal is postponed until the PV is no longer bound to a PVC.
+
+### Reclaiming
+The reclaim policy for a PersistentVolume tells the cluster what to do with the volume after it has been released of its claim. Currently, volumes can either be Retained, Recycled, or Deleted.
+
+* Retain: The Persistent Volume will not be deleted when the Persistent Volume Claim is deleted. The underlying storage must be manually reclaimed.
+* Delete: The Persistent Volume and the underlying storage will be deleted when the Persistent Volume Claim is deleted.
+* Recycle: The Persistent Volume will be recycled (i.e., the data will be wiped) when the Persistent Volume Claim is deleted, and the Persistent Volume can be reused.
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/my-pv
+```
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: low-latency
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: csi-driver.example-vendor.example
+reclaimPolicy: Retain # default value is Delete
+allowVolumeExpansion: true
+mountOptions:
+  - discard # this might enable UNMAP / TRIM at the block storage layer
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  guaranteedReadWriteLatency: "true" # provider-specific
+```
+
+
+
+
+
 
 
 
