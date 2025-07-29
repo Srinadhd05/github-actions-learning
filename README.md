@@ -606,13 +606,122 @@ parameters:
   guaranteedReadWriteLatency: "true" # provider-specific
 ```
 
+## Kubernetes RBAC (Role-Based Access Control)
+RBAC in Kubernetes allows you to define roles and permissions for users, groups, or service accounts. In simple RBAC is a way to control who can do what in your Kubernetes cluster.
 
+Think of it like this:
+`"Not everyone should have keys to every door in a building."`
 
+RBAC makes sure that:
+* Only the **right people (users, apps, services)**
+* Can do the **right things (read, write, delete, etc.)**
+* On the right **resources (pods, deployments, secrets, etc.)**
 
+It consists of four main components:
+* **Role**
+  - A set of permissions (what actions are allowed). `Example: A "reader" role can only read pods, not delete them.`
+* **RoleBinding**
+  - Gives the Role to a person (or app) in a specific namespace. `Example: Give "reader" role to Alice in the dev namespace.`
+* **ClusterRole**
+  - Like Role, but works across the entire cluster (not just one namespace). `Example: A ClusterRole that lets someone read nodes, which are cluster-wide.`
+* **ClusterRoleBinding**
+  - Binds a ClusterRole to a user across the whole cluster.
 
+RoleBinding Example Scenario:
+Let’s say you have a developer named **Srinadh**, and you want him to:
+* Be able to **view pods** in the `dev` namespace,
+* But **not delete or change** them.
+Here’s what happens:
+* You create a **Role** called `pod-reader` with permission to "get", "list", and "watch" pods.
+* You create a **RoleBinding** that gives that Role to Raj in the `dev` namespace.
+Now Raj can only **see pods** in `dev`, not in `prod`, and can’t **delete** anything.
 
+Quick Summary table:
 
+| **Component**      | **What it defines**        | **Scope**    |
+| :----------------: | :------------------------: | :----------: |
+| Role               | Set of rules (permissions) | Namespace    |
+| RoleBinding        | Who gets the Role          | Namespace    |
+| ClusterRole        | Set of rules               | Cluster-wide |
+| ClusterRoleBinding | Who gets the ClusterRole   | Cluster-wide |
 
+### Role: Permissions in a namespace
 
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+  namespace: dev         # Applies only in 'dev' namespace
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+```
+Key parts:
+`kind`: Role – a namespaced permission set
+`rules` – list of actions allowed (like “get pods”)
+`apiGroups`:
+  * `""` means core API (like pods, services)
+  * `"apps"` would be for deployments, etc.
+`verbs`: actions allowed – like `get`, `list`, `watch`, `create`, `delete`
 
+### RoleBinding – Assign Role to someone in a namespace
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-pods
+  namespace: dev          # Binding only works in 'dev'
+subjects:
+- kind: User
+  name: raj               # Who gets the access
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role              # Reference the Role
+  name: pod-reader        # Role being assigned
+  apiGroup: rbac.authorization.k8s.io
+```
+Key parts:
+* `subjects` – the user/group/service account to bind
+* `roleRef` – which Role to give to the subject
 
+### ClusterRole – Permissions for entire cluster
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-pod-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+```
+Key differences from Role:
+* No namespace (works across all namespaces)
+* Used when access is cluster-wide (like reading nodes, or all pods)
+
+### ClusterRoleBinding – Assign ClusterRole to someone for whole cluster
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: raj-global-read
+subjects:
+- kind: User
+  name: raj
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cluster-pod-reader
+  apiGroup: rbac.authorization.k8s.io
+```
+Same structure as RoleBinding, but:
+* **No** `namespace`, because it's for the whole cluster
+* Used to grant global access
+
+### Quick Tips
+* **Roles & RoleBindings** = Scoped to a single namespace
+* **ClusterRoles & ClusterRoleBindings** = Apply to the whole cluster
+* **Subjects** = Who gets access (User, Group, ServiceAccount)
+* **roleRef** = Which Role or ClusterRole is being granted
