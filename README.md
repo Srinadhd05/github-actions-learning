@@ -725,3 +725,67 @@ Same structure as RoleBinding, but:
 * **ClusterRoles & ClusterRoleBindings** = Apply to the whole cluster
 * **Subjects** = Who gets access (User, Group, ServiceAccount)
 * **roleRef** = Which Role or ClusterRole is being granted
+
+### Real-World Use Case: AWS EKS + IAM + Kubernetes RBAC
+Scenario:
+You’re running a Kubernetes cluster in **AWS EKS**, and you want to:
+* Allow a developer named **Raj** to **view pods in all namespaces**
+* But **not let him delete or create** anything
+* Use **IAM role** for authentication (not local K8s users)
+
+EKS uses aws-auth ConfigMap to tell Kubernetes: `“This IAM user/role = this Kubernetes user/group.”` 
+**Map IAM to Kubernetes User:** Edit the `aws-auth` ConfigMap:
+```yaml
+# Run: kubectl edit -n kube-system configmap/aws-auth
+mapUsers: |
+  - userarn: arn:aws:iam::123456789012:user/raj
+    username: raj
+    groups:
+      - dev-readers
+```
+This says: Raj (IAM user) should be known as "raj" in Kubernetes and is part of `dev-readers` group.
+
+**Create a ClusterRole to View Pods:**
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: read-pods
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+```
+**Bind the Role to the IAM Group (dev-readers)**
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dev-readers-view-pods
+subjects:
+- kind: Group
+  name: dev-readers                  # Same as in aws-auth config
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: read-pods
+  apiGroup: rbac.authorization.k8s.io
+```
+This says: “Anyone in the `dev-readers` group (like Raj) can read pods across the whole cluster.”
+
+**Summary:**
+| **Component**          | **Purpose**                                       |
+| :--------------------: | :-----------------------------------------------: |
+| **IAM user/role**      | Authenticates Raj via AWS                         |
+| **aws-auth ConfigMap** | Maps IAM user → K8s username & group              |
+| **ClusterRole**        | Defines permissions (e.g., read pods)             |
+| **ClusterRoleBinding** | Assigns those permissions to the IAM-mapped group |
+
+**apiGroups Summary:**
+| **`apiGroups`**             | **Resource Examples**         | **Meaning**                     |
+| :-------------------------: | :---------------------------: | :-----------------------------: |
+| `""` (empty string)         | `pods`, `services`, `nodes`   | Core Kubernetes resources       |
+| `apps`                      | `deployments`, `statefulsets` | App management resources        |
+| `batch`                     | `jobs`, `cronjobs`            | Background processing resources |
+| `rbac.authorization.k8s.io` | `roles`, `rolebindings`       | RBAC resources                  |
+| `apiextensions.k8s.io`      | `customresourcedefinitions`   | Custom Resources (CRDs)         |
